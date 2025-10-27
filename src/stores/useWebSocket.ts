@@ -12,7 +12,6 @@ export const useWebSocket = {
 
     // STOMP 서버(Spring WebSocketConfig)에 연결 요청
     stompClient.connect({}, () => {
-      console.log("연결 성공");
 
       // 구독(서버에서 메시지 받기)
       stompClient.subscribe(`/topic/chatRoom/${roomId}`, (res: any) => {
@@ -22,6 +21,7 @@ export const useWebSocket = {
           senderId: message.senderId,
           content: message.content,
           messageType: message.messageType,
+          createdAt: message.createdAt,
         });
       });
 
@@ -31,7 +31,7 @@ export const useWebSocket = {
         senderId: localStorage.getItem('userId'),
         messageType: 'ENTER',
         roomType: 'PRIVATE',
-        content: ''
+        content: '',
       }));
     });
   },

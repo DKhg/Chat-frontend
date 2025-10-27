@@ -15,6 +15,7 @@ interface ChatMessage {
   senderId: string;
   messageType: 'ENTER' | 'TALK' | 'LEAVE';
   content: string;
+  createdAt: string;
 }
 
 export const useChatStore = defineStore('chat', {

@@ -12,13 +12,14 @@
     </div>
 
     <!-- 메시지 리스트 -->
-    <div class="flex-1 overflow-y-auto p-4 space-y-2">
+    <div class="flex-1 overflow-y-auto p-4 space-y-3">
       <div
         v-for="(msg, index) in chatStore.receivedMessages"
         :key="index"
-        class="flex w-full"
-        :class="msg.senderId === chatStore.userId ? 'justify-end' : 'justify-start'"
+        class="flex flex-col w-full"
+        :class="msg.senderId === chatStore.userId ? 'items-end' : 'items-start'"
       >
+        <!-- 말풍선 -->
         <div
           :class="[
         'max-w-[70%] px-3 py-2 rounded-lg shadow text-sm break-words',
@@ -31,11 +32,20 @@
             <template v-if="msg.messageType === 'TALK'">
               {{ msg.senderId }} :
             </template>
-              {{ msg.content }}
+            {{ msg.content }}
           </p>
+        </div>
+
+        <!-- 시간 -->
+        <div
+          class="text-[11px] text-gray-400 mt-1"
+          :class="msg.senderId === chatStore.userId ? 'text-right pr-2' : 'text-left pl-2'"
+        >
+          {{ useCommon.formatDate(msg.createdAt) }}
         </div>
       </div>
     </div>
+
 
 
     <!-- 입력창 -->
@@ -62,6 +72,7 @@ import {computed, onMounted, onUnmounted} from 'vue'
 import { useRouter } from 'vue-router'
 import {useChatStore} from "@/stores/useChatStore.js";
 import {useUserStore} from "@/stores/useUserStore.js";
+import {useCommon} from "@/stores/useCommon.js";
 
 const chatStore = useChatStore();
 const userStore = useUserStore();
