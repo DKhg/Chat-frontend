@@ -1,14 +1,15 @@
-import { defineStore } from "pinia";
-import router from "@/router";
-import {useUserApi} from "@/stores/useUserApi.ts";
-import {useWebSocket} from "@/stores/useWebSocket.ts";
-import {useChatStore} from "@/stores/useChatStore.ts";
+import { defineStore } from 'pinia';
+import router from '@/router';
+import { useUserApi } from '@/stores/useUserApi.ts';
+import { useWebSocket } from '@/stores/useWebSocket.ts';
+import { useChatStore } from '@/stores/useChatStore.ts';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
     userId: '',
     password: '',
     error: '',
+    userList: [],
   }),
   actions: {
     // 로그인
@@ -24,16 +25,16 @@ export const useUserStore = defineStore('user', {
         // 사용자 아이디 저장
         localStorage.setItem('userId', res.userId);
 
-        await router.push("/chatRooms");
+        await router.push('/chatRooms');
       } catch (e) {
-        this.error = '로그인 실패: 아이디 또는 비밀번호가 잘못되었습니다.'
+        this.error = '로그인 실패: 아이디 또는 비밀번호가 잘못되었습니다.';
       }
     },
     // 로그아웃
     async logout() {
       // 접속했던 채팅방이 있으면 소켓 연결 끊어주기
       const lastRoomId = useChatStore().receivedMessages[0]?.roomId;
-      if(lastRoomId) {
+      if (lastRoomId) {
         useWebSocket.disconnect(lastRoomId);
       }
 
@@ -43,6 +44,10 @@ export const useUserStore = defineStore('user', {
       localStorage.removeItem('userId');
 
       await router.push('/login');
-    }
-  }
-})
+    },
+    // 해당 채팅방의 메시지 목록 조회
+    async getUserList() {
+      this.userList = await useUserApi.getUserList();
+    },
+  },
+});

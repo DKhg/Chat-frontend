@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import router from '@/router';
 import { useWebSocket } from '@/stores/useWebSocket.ts';
 import { useChatApi } from '@/stores/useChatApi.ts';
+import { useUserApi } from '@/stores/useUserApi.ts';
 
 interface ChatRoom {
   id: number;
@@ -19,6 +20,7 @@ interface ChatMessage {
   unreadCount: number;
 }
 
+/* 리스너 중복 등록 방지(리스너를 한 번만 등록하도록 하는 안전장치) */
 let chatReadListenerRegistered = false;
 
 export const useChatStore = defineStore('chat', {
@@ -27,6 +29,11 @@ export const useChatStore = defineStore('chat', {
     newMessage: '',
     receivedMessages: [] as ChatMessage[],
     rooms: [] as ChatRoom[],
+    showCreateChatRoomModal: false,
+    roomName: '',
+    roomType: 'PRIVATE',
+    selectedUsers: [] as string[],
+    userList: [],
   }),
   actions: {
     // WebSocket 연결 (해당 채팅방 입장 시 호출)
@@ -38,6 +45,7 @@ export const useChatStore = defineStore('chat', {
       });
 
       if (!chatReadListenerRegistered) {
+        // 이벤트 등록: WebSocket.ts에서 dispatchEvent로 발생한 이벤트의 데이터를 받아 사용
         window.addEventListener('chat-read-event', (e: any) => {
           const data = e.detail;
           if (Number(data.roomId) !== Number(roomId)) return;
@@ -50,6 +58,7 @@ export const useChatStore = defineStore('chat', {
             return m;
           });
         });
+        // 이벤트 리스너 중복방지
         chatReadListenerRegistered = true;
       }
     },
