@@ -19,21 +19,43 @@
         class="flex flex-col w-full"
         :class="msg.senderId === chatStore.userId ? 'items-end' : 'items-start'"
       >
-        <!-- 말풍선 -->
+        <!-- 한 줄 구성: 읽음 + 말풍선 -->
         <div
-          :class="[
-        'max-w-[70%] px-3 py-2 rounded-lg shadow text-sm break-words',
-        msg.senderId === chatStore.userId
-          ? 'bg-blue-500 text-white rounded-br-none'
-          : 'bg-white text-gray-800 rounded-bl-none',
-      ]"
+          class="flex items-end w-full"
+          :class="msg.senderId === chatStore.userId ? 'justify-end' : 'justify-start'"
         >
-          <p class="whitespace-pre-wrap">
-            <template v-if="msg.messageType === 'TALK'">
-              {{ msg.senderId }} :
-            </template>
-            {{ msg.content }}
-          </p>
+          <!-- 내가 보낸 메시지: 읽음 수 왼쪽 -->
+          <div
+            v-if="msg.senderId === chatStore.userId && msg.unreadCount !== undefined"
+            class="text-[11px] text-gray-500 mr-2 min-w-[20px] text-right"
+          >
+            <span v-if="msg.unreadCount > 0">{{ msg.unreadCount }}</span>
+            <span v-else>읽음</span>
+          </div>
+
+          <!-- 말풍선 -->
+          <div
+            :class="[
+              'max-w-[70%] px-3 py-2 rounded-lg shadow text-sm break-words',
+              msg.senderId === chatStore.userId
+                ? 'bg-blue-500 text-white rounded-br-none'
+                : 'bg-white text-gray-800 rounded-bl-none',
+            ]"
+          >
+            <p class="whitespace-pre-wrap">
+              <template v-if="msg.messageType === 'TALK'">{{ msg.senderId }} : </template>
+              {{ msg.content }}
+            </p>
+          </div>
+
+          <!-- 상대방 메시지: 읽음 수 오른쪽 -->
+          <div
+            v-if="msg.senderId !== chatStore.userId && msg.unreadCount !== undefined"
+            class="text-[11px] text-gray-500 ml-2 min-w-[20px] text-left"
+          >
+            <span v-if="msg.unreadCount > 0">{{ msg.unreadCount }}</span>
+            <span v-else>읽음</span>
+          </div>
         </div>
 
         <!-- 시간 -->
@@ -45,8 +67,6 @@
         </div>
       </div>
     </div>
-
-
 
     <!-- 입력창 -->
     <div class="border-t p-3 flex bg-white">
@@ -68,40 +88,40 @@
 </template>
 
 <script setup>
-import {computed, onMounted, onUnmounted} from 'vue'
-import { useRouter } from 'vue-router'
-import {useChatStore} from "@/stores/useChatStore.js";
-import {useUserStore} from "@/stores/useUserStore.js";
-import {useCommon} from "@/stores/useCommon.js";
+  import { computed, onMounted, onUnmounted } from 'vue';
+  import { useRouter } from 'vue-router';
+  import { useChatStore } from '@/stores/useChatStore.js';
+  import { useUserStore } from '@/stores/useUserStore.js';
+  import { useCommon } from '@/stores/useCommon.js';
 
-const chatStore = useChatStore();
-const userStore = useUserStore();
-const router = useRouter();
+  const chatStore = useChatStore();
+  const userStore = useUserStore();
+  const router = useRouter();
 
-// 현재 라우트 경로에서 채팅방 아이디를 반응형으로 추출
-const roomId = computed(() => Number(router.currentRoute.value.params.roomId));
+  // 현재 라우트 경로에서 채팅방 아이디를 반응형으로 추출
+  const roomId = computed(() => Number(router.currentRoute.value.params.roomId));
 
-const logout = () => {
-  chatStore.disconnect(roomId.value);
-};
+  const logout = () => {
+    chatStore.disconnect(roomId.value);
+  };
 
-onMounted(async () => {
-  // 로그인 안 된 상태면 접근 차단
-  if (!chatStore.userId) {
-    await router.push('/login');
-    return;
-  }
-  // 채팅방 메시지 목록 조회
-  await chatStore.getMessages(roomId.value);
-  // 채팅방 연결
-  await chatStore.connect(roomId.value);
-});
+  onMounted(async () => {
+    // 로그인 안 된 상태면 접근 차단
+    if (!chatStore.userId) {
+      await router.push('/login');
+      return;
+    }
 
-// 채팅방 나가기
-onUnmounted(() => {
-  // 퇴장 메시지 전송
-  chatStore.send(roomId.value);
-  // 소켓 연결 해제
-  chatStore.disconnect(roomId.value);
-});
+    // 채팅방 메시지 목록 조회
+    await chatStore.getMessages(roomId.value, true);
+    // 채팅방 연결
+    await chatStore.connect(roomId.value);
+    chatStore.sendRead(roomId.value);
+  });
+
+  // 채팅방 나가기
+  onUnmounted(() => {
+    chatStore.send(roomId.value); // 퇴장 메시지
+    chatStore.disconnect(roomId.value);
+  });
 </script>

@@ -1,14 +1,14 @@
-import axios from "axios";
+import axios from 'axios';
 
 export const useChatApi = {
   async getChatRooms(userId: string) {
     const res = await axios.get('/api/chat/getChatRooms', {
-      params: { userId }
-    })
+      params: { userId },
+    });
     return res.data;
   },
-  async getMessage(roomId: Number) {
-    const res = await axios.get(`/api/chat/${roomId}/messages`);
+  async getMessage(roomId: Number, includeUnreadCount: boolean) {
+    const res = await axios.get(`/api/chat/${roomId}/messages`, { params: { includeUnreadCount } });
     return res.data;
-  }
-}
+  },
+};
