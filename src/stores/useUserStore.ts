@@ -21,10 +21,9 @@ export const useUserStore = defineStore('user', {
 
       try {
         // 로그인 실행
-        const res = await useUserApi.login(this.userId, this.password);
+        await useUserApi.login(this.userId, this.password);
         // 사용자 아이디 저장
-        localStorage.setItem('userId', res.userId);
-
+        localStorage.setItem('userId', this.userId);
         await router.push('/chatRooms');
       } catch (e) {
         this.error = '로그인 실패: 아이디 또는 비밀번호가 잘못되었습니다.';
@@ -42,7 +41,6 @@ export const useUserStore = defineStore('user', {
       this.userId = '';
       this.password = '';
       localStorage.removeItem('userId');
-
       await router.push('/login');
     },
     // 참가자 선택 목록 조회 ( 자기 자신 제외 )

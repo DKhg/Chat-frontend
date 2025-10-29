@@ -20,4 +20,9 @@ export const useChatApi = {
     });
     return res.data;
   },
+  // 채팅방 나가기
+  async leaveChatRoom(roomId: Number, userId: String) {
+    const res = await axios.post('/api/chat/leaveChatRoom', null, { params: { roomId, userId } });
+    return res.data;
+  },
 };

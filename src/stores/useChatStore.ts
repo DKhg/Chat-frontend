@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import router from '@/router';
 import { useWebSocket } from '@/stores/useWebSocket.ts';
 import { useChatApi } from '@/stores/useChatApi.ts';
+import { useUserStore } from '@/stores/useUserStore.ts';
 
 interface ChatRoom {
   id: number;
@@ -24,7 +25,6 @@ let chatReadListenerRegistered = false;
 
 export const useChatStore = defineStore('chat', {
   state: () => ({
-    userId: localStorage.getItem('userId') || '익명',
     newMessage: '',
     receivedMessages: [] as ChatMessage[],
     rooms: [] as ChatRoom[],
@@ -35,6 +35,9 @@ export const useChatStore = defineStore('chat', {
     selectedUsers: [] as string[],
     userList: [],
   }),
+  getters: {
+    userId: () => useUserStore().userId, //  항상 최신(로그인된) userId 참조
+  },
   actions: {
     // WebSocket 연결 (해당 채팅방 입장 시 호출)
     async connect(roomId: Number) {
@@ -138,6 +141,19 @@ export const useChatStore = defineStore('chat', {
     // 채팅방 목록으로
     async goChatRoomList() {
       await router.push('/chatRooms');
+    },
+    // 채팅방 나가기
+    async leaveChatRoom(roomId: Number) {
+      try {
+        if (!confirm('이 채팅방을 나가시겠습니까?')) return;
+        // 나가기 처리
+        await useChatApi.leaveChatRoom(roomId, this.userId);
+        // 새로 목록 갱신
+        this.rooms = await useChatApi.getChatRooms(this.userId);
+        await router.push('/chatRooms');
+      } catch (err) {
+        console.error('채팅방 나가기 오류', err);
+      }
     },
   },
 });

@@ -176,7 +176,7 @@
       return;
     }
     // 채팅방 목록 조회
-    await chatStore.getChatRooms();
+    await chatStore.getChatRooms(chatStore.userId);
   });
 
   // 채팅방 입장
