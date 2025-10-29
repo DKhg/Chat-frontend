@@ -3,12 +3,33 @@
     <!-- 상단 바 -->
     <div class="bg-blue-500 text-white px-4 py-3 flex justify-between items-center">
       <h2 class="text-lg font-bold">💬 Hong Talk</h2>
-      <button
-        @click="userStore.logout()"
-        class="text-sm bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded"
-      >
-        로그아웃
-      </button>
+
+      <!-- 오른쪽 버튼 그룹 -->
+      <div class="flex items-center space-x-2">
+        <!-- 목록으로 버튼 (연한 파랑톤) -->
+        <button
+          @click="chatStore.goChatRoomList()"
+          class="text-sm font-semibold bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded transition"
+        >
+          목록으로
+        </button>
+
+        <!-- 채팅방 나가기 버튼 (중간 회색톤) -->
+        <button
+          @click="chatStore.leaveChatRoom(roomId)"
+          class="text-sm font-semibold bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded transition"
+        >
+          채팅방 나가기
+        </button>
+
+        <!-- 로그아웃 버튼 (짙은 파랑톤) -->
+        <button
+          @click="userStore.logout()"
+          class="text-sm font-semibold bg-blue-700 hover:bg-blue-800 text-white px-3 py-1 rounded transition"
+        >
+          로그아웃
+        </button>
+      </div>
     </div>
 
     <!-- 메시지 리스트 -->
@@ -100,10 +121,6 @@
 
   // 현재 라우트 경로에서 채팅방 아이디를 반응형으로 추출
   const roomId = computed(() => Number(router.currentRoute.value.params.roomId));
-
-  const logout = () => {
-    chatStore.disconnect(roomId.value);
-  };
 
   onMounted(async () => {
     // 로그인 안 된 상태면 접근 차단

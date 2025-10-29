@@ -45,9 +45,9 @@ export const useUserStore = defineStore('user', {
 
       await router.push('/login');
     },
-    // 해당 채팅방의 메시지 목록 조회
-    async getUserList() {
-      this.userList = await useUserApi.getUserList();
+    // 참가자 선택 목록 조회 ( 자기 자신 제외 )
+    async getUserList(userId: string) {
+      this.userList = await useUserApi.getUserList(userId);
     },
   },
 });

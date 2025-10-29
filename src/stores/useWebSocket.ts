@@ -4,44 +4,61 @@ import Stomp from 'stompjs';
 let stompClient: any = null;
 
 export const useWebSocket = {
-  connect(roomId: Number, onMessage: (msg: any) => void) {
-    // 서버 연결
-    const socket = new SockJS('http://localhost:8080/ws-chat');
-    // SockJS 객체 위에 STOMP 프로토콜을 입혀서 메시지 송수신을 STOMP 방식으로 처리
-    stompClient = Stomp.over(socket);
+  // new Promise 비동기 작업을 감싸는 틀 resolve(성공시 결과 반환), reject(실패시 에러 반환)
+  connect(roomId: Number, onMessage: (msg: any) => void): Promise<void> {
+    return new Promise((resolve, reject) => {
+      try {
+        // SockJS 연결 생성
+        const socket = new SockJS('http://localhost:8080/ws-chat');
+        stompClient = Stomp.over(socket);
 
-    // STOMP 서버(Spring WebSocketConfig)에 연결 요청
-    stompClient.connect({}, () => {
-      // 구독(서버에서 메시지 받기)
-      stompClient.subscribe(`/topic/chatRoom/${roomId}`, (res: any) => {
-        const message = JSON.parse(res.body);
-        onMessage({
-          senderId: message.senderId,
-          content: message.content,
-          messageType: message.messageType,
-          createdAt: message.createdAt,
-          unreadCount: message.unreadCount,
-        });
-      });
+        // STOMP 연결
+        stompClient.connect(
+          {},
+          () => {
+            console.log('WebSocket 연결 성공');
 
-      // 읽음 이벤트 구독
-      stompClient.subscribe(`/topic/chatRoom/${roomId}/read`, (res: any) => {
-        const data = JSON.parse(res.body);
-        window.dispatchEvent(new CustomEvent('chat-read-event', { detail: data }));
-      });
+            // 메시지 구독
+            stompClient.subscribe(`/topic/chatRoom/${roomId}`, (res: any) => {
+              const message = JSON.parse(res.body);
+              onMessage({
+                senderId: message.senderId,
+                content: message.content,
+                messageType: message.messageType,
+                createdAt: message.createdAt,
+                unreadCount: message.unreadCount,
+              });
+            });
 
-      // 입장 알림
-      stompClient.send(
-        '/app/chatSend',
-        {},
-        JSON.stringify({
-          roomId: roomId,
-          senderId: localStorage.getItem('userId'),
-          messageType: 'ENTER',
-          roomType: 'PRIVATE',
-          content: '',
-        })
-      );
+            // 읽음 이벤트 구독
+            stompClient.subscribe(`/topic/chatRoom/${roomId}/read`, (res: any) => {
+              const data = JSON.parse(res.body);
+              window.dispatchEvent(new CustomEvent('chat-read-event', { detail: data }));
+            });
+
+            // 입장 알림 (연결 완료 후에만 보냄)
+            stompClient.send(
+              '/app/chatSend',
+              {},
+              JSON.stringify({
+                roomId: roomId,
+                senderId: localStorage.getItem('userId'),
+                messageType: 'ENTER',
+                roomType: 'PRIVATE',
+                content: '',
+              })
+            );
+
+            resolve(); // 연결 성공 시점 알림
+          },
+          () => {
+            console.error('WebSocket 연결 실패');
+            reject();
+          }
+        );
+      } catch (err) {
+        reject(err);
+      }
     });
   },
 

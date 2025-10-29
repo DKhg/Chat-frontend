@@ -53,18 +53,20 @@
     </div>
   </div>
 
-  <!-- ✅ 채팅방 생성 모달 -->
+  <!-- 채팅방 생성 모달 -->
   <div
     v-if="chatStore.showCreateChatRoomModal"
     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50"
   >
-    <div class="bg-white rounded-lg shadow-lg p-6 w-[320px]">
-      <h3 class="text-center font-semibold text-gray-800 mb-4">새 채팅방 만들기</h3>
+    <div class="bg-white rounded-xl shadow-xl w-[400px] p-6 space-y-6 animate-fade-in">
+      <h3 class="text-center text-lg font-semibold text-gray-800 mb-2">💬 새 채팅방 만들기</h3>
 
-      <!-- 🔘 채팅방 유형 선택 -->
-      <div class="mb-5">
-        <label class="text-sm font-medium text-gray-700 block text-center mb-3">채팅방 유형</label>
-        <div class="flex justify-center space-x-6">
+      <!-- 채팅방 유형 선택 -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2 text-center">
+          채팅방 유형
+        </label>
+        <div class="flex justify-center space-x-8 border rounded-lg px-3 py-3 bg-gray-50">
           <label
             class="flex items-center space-x-2 cursor-pointer hover:bg-blue-50 px-3 py-2 rounded transition"
           >
@@ -74,7 +76,7 @@
               v-model="chatStore.roomType"
               class="text-blue-600 focus:ring-blue-500"
             />
-            <span class="text-sm text-gray-800 font-medium">1:1 채팅</span>
+            <span class="text-sm font-medium text-gray-700">1:1 채팅</span>
           </label>
 
           <label
@@ -86,32 +88,31 @@
               v-model="chatStore.roomType"
               class="text-blue-600 focus:ring-blue-500"
             />
-            <span class="text-sm text-gray-800 font-medium">그룹 채팅</span>
+            <span class="text-sm font-medium text-gray-700">그룹 채팅</span>
           </label>
         </div>
       </div>
 
-      <div class="mb-5 text-center">
+      <!-- 참여자 선택 -->
+      <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">참여자 선택</label>
 
-        <!-- 1:1 (단일 선택) -->
         <select
           v-if="chatStore.roomType === 'PRIVATE'"
-          v-model="chatStore.selectedUsers"
-          class="w-[80%] mx-auto block border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+          v-model="chatStore.selectedUser"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
         >
-          <option value="">사용자를 선택하세요</option>
+          <option value="">참여자를 선택하세요</option>
           <option v-for="user in userStore.userList" :key="user.id" :value="user.id">
             {{ user.userId }}
           </option>
         </select>
 
-        <!-- 그룹 (다중 선택) -->
         <select
           v-else
           multiple
           v-model="chatStore.selectedUsers"
-          class="w-[80%] mx-auto block border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition h-32"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white text-sm h-28 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
         >
           <option v-for="user in userStore.userList" :key="user.id" :value="user.id">
             {{ user.userId }}
@@ -119,23 +120,28 @@
         </select>
       </div>
 
-      <input
-        v-model="chatStore.roomName"
-        type="text"
-        placeholder="채팅방 이름을 입력하세요"
-        class="w-full border rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
-      />
+      <!-- 채팅방 이름 -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">채팅방 이름</label>
+        <input
+          v-model="chatStore.roomName"
+          type="text"
+          placeholder="채팅방 이름을 입력하세요"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+        />
+      </div>
 
-      <div class="flex justify-end space-x-2">
+      <!-- 버튼 영역 -->
+      <div class="flex justify-end space-x-3 pt-2">
         <button
           @click="closeModal()"
-          class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded"
+          class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-1.5 rounded-md transition"
         >
           취소
         </button>
         <button
-          @click=""
-          class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+          @click="chatStore.createChatRoom()"
+          class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-md transition"
         >
           생성
         </button>
@@ -145,7 +151,7 @@
 </template>
 
 <script setup>
-  import { onMounted } from 'vue';
+  import { onMounted, watch } from 'vue';
   import { useRouter } from 'vue-router';
   import { useChatStore } from '@/stores/useChatStore';
   import { useUserStore } from '@/stores/useUserStore';
@@ -153,6 +159,16 @@
   const chatStore = useChatStore();
   const userStore = useUserStore();
   const router = useRouter();
+
+  watch(
+    () => chatStore.roomType,
+    () => {
+      // roomType이 바뀔 때마다 참가자 선택값, 채팅방 명 초기화
+      chatStore.selectedUser = '';
+      chatStore.selectedUsers = [];
+      chatStore.roomName = '';
+    }
+  );
 
   onMounted(async () => {
     if (!chatStore.userId) {
@@ -169,9 +185,15 @@
   };
 
   const openCreateChatRoomModal = () => {
+    // 채팅방 생성 입력값 초기화
+    chatStore.roomType = 'PRIVATE';
+    chatStore.roomName = '';
+    chatStore.selectedUser = '';
+    chatStore.selectedUsers = [];
+
     chatStore.showCreateChatRoomModal = true;
     // 사용자 목록 조회
-    userStore.getUserList();
+    userStore.getUserList(chatStore.userId);
   };
   const closeModal = () => {
     chatStore.showCreateChatRoomModal = false;
