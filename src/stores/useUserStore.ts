@@ -21,11 +21,15 @@ export const useUserStore = defineStore('user', {
 
       try {
         // 로그인 실행
-        await useUserApi.login(this.userId, this.password);
-        // 사용자 아이디 저장
-        localStorage.setItem('userId', this.userId);
+        const res = await useUserApi.login(this.userId, this.password);
+        // 토큰, 사용자 아이디 저장
+        localStorage.setItem('accessToken', res.accessToken);
+        localStorage.setItem('userId', res.user.userId);
+        // Pinia 상태에도 저장
+        this.userId = res.user.userId;
         await router.push('/chatRooms');
       } catch (e) {
+        console.error('로그인 에러', e);
         this.error = '로그인 실패: 아이디 또는 비밀번호가 잘못되었습니다.';
       }
     },

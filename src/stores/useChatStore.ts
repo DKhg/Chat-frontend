@@ -121,9 +121,8 @@ export const useChatStore = defineStore('chat', {
       params.append('selectedUsers', this.selectedUsers.join(','));
 
       try {
-        const res = await useChatApi.createChatRoom(params);
+        await useChatApi.createChatRoom(params);
         alert('채팅방이 생성 되었습니다.');
-        console.log('채팅방 생성 : ', res);
 
         // 채팅방 생성 입력값 초기화
         this.roomType = 'PRIVATE';
