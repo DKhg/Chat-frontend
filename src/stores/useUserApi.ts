@@ -14,4 +14,15 @@ export const useUserApi = {
     const res = await axios.get('/api/user/users', { params: { userId } });
     return res.data;
   },
+  // 회원가입
+  async join(payload: {
+    userId: string;
+    email: string;
+    password: string;
+    nickname: string;
+    username: string;
+  }) {
+    const res = await axios.post('/api/user/join', payload);
+    return res.data;
+  },
 };

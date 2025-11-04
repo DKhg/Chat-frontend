@@ -42,7 +42,7 @@
 
       <div class="mt-8 text-center">
         <button
-          class="text-sm text-gray-700 hover:text-blue-600 font-medium transition-colors"
+          class="text-sm text-gray-700 hover:text-blue-600 font-medium transition-colors" @click="joinPage()"
         >
           회원가입
         </button>
@@ -53,8 +53,14 @@
 
 <script setup>
 import {useUserStore} from "@/stores/useUserStore.js";
+import router from "@/router/index.js";
 const store = useUserStore();
 
+// 회원가입 페이지 이동
+const joinPage = () => {
+  store.$reset(); // 모든 state를 초기값으로 복구
+  router.push("/join")
+}
 </script>
 
 <style scoped>
